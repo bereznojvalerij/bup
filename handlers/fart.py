@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 
 from database import get_user_id, add_event, get_all_users
 from config import MAX_FART_PER_INPUT
+from keyboards.main import fart_keyboard, main_keyboard
 
 router = Router()
 
@@ -14,22 +15,15 @@ class FartState(StatesGroup):
 
 
 @router.message(lambda msg: msg.text == "💨 Пук")
-async def fart_start(message: Message, state: FSMContext):
-    await state.set_state(FartState.waiting_for_count)
-    await message.answer("Введи количество:")
+async def fart_menu(message: Message):
+    await message.answer(
+        "Выбери количество:",
+        reply_markup=fart_keyboard()
+    )
 
-
-@router.message(FartState.waiting_for_count)
-async def process_count(message: Message, state: FSMContext):
-    try:
-        count = int(message.text)
-    except:
-        await message.answer("Введи число")
-        return
-
-    if count <= 0 or count > MAX_FART_PER_INPUT:
-        await message.answer("Недопустимое значение")
-        return
+@router.message(lambda msg: msg.text in ["+1", "+2", "+3", "+4", "+5", "+6"])
+async def add_fart(message: Message):
+    count = int(message.text.replace("+", ""))
 
     user_id = await get_user_id(message.from_user.id)
     await add_event(user_id, count)
@@ -44,4 +38,8 @@ async def process_count(message: Message, state: FSMContext):
         except:
             pass
 
-    await state.clear()
+    await message.answer("Записано ✅", reply_markup=main_keyboard())
+
+@router.message(lambda msg: msg.text == "⬅️ Назад")
+async def back(message: Message):
+    await message.answer("Главное меню", reply_markup=main_keyboard())
