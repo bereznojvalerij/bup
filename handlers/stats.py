@@ -22,10 +22,15 @@ async def stats_day(callback: CallbackQuery):
 
             total = (await cursor.fetchone())[0] or 0
 
-    await callback.message.answer(
-    f"Сегодня: {total} 💨",
-    reply_markup=main_keyboard()
-)
+    if callback.message.chat.type == "private":
+        await callback.message.answer(
+            f"Сегодня: {total} 💨",
+            reply_markup=main_keyboard()
+        )
+    else:
+        await callback.message.answer(
+            f"Сегодня: {total} 💨"
+        )
 
 
 # 📊 Неделя
@@ -43,11 +48,15 @@ async def stats_week(callback: CallbackQuery):
 
             total = (await cursor.fetchone())[0] or 0
 
-    await callback.message.answer(
-    f"За 7 дней: {total} 💨",
-    reply_markup=main_keyboard()
-)
-
+    if callback.message.chat.type == "private":
+        await callback.message.answer(
+            f"За 7 дней: {total} 💨",
+            reply_markup=main_keyboard()
+        )
+    else:
+        await callback.message.answer(
+            f"За 7 дней: {total} 💨"
+        )
 
 # 📊 Месяц
 @router.callback_query(lambda c: c.data == "month")
@@ -64,10 +73,15 @@ async def stats_month(callback: CallbackQuery):
 
             total = (await cursor.fetchone())[0] or 0
 
-    await callback.message.answer(
-    f"За 30 дней: {total} 💨",
-    reply_markup=main_keyboard()
-)
+    if callback.message.chat.type == "private":
+        await callback.message.answer(
+            f"За 30 дней: {total} 💨",
+            reply_markup=main_keyboard()
+        )
+    else:
+        await callback.message.answer(
+            f"За 30 дней: {total} 💨"
+        )
 
 
 # 📊 Всё время
@@ -84,10 +98,15 @@ async def stats_all(callback: CallbackQuery):
 
             total = (await cursor.fetchone())[0] or 0
 
-    await callback.message.answer(
-    f"За все время: {total} 💨",
-    reply_markup=main_keyboard()
-)
+    if callback.message.chat.type == "private":
+        await callback.message.answer(
+            f"За все время: {total} 💨",
+            reply_markup=main_keyboard()
+        )
+    else:
+        await callback.message.answer(
+            f"За все время: {total} 💨"
+        )
 
 
 # 🏆 Рейтинг
@@ -111,6 +130,9 @@ async def rating(callback: CallbackQuery):
 
     text = "🏆 Рейтинг:\n\n"
     for i, (name, count) in enumerate(rows, 1):
-        text += f"{i}. {name} — {count} 💨\n"
+        text += f"{i}. {name or 'Без имени'} — {count} 💨\n"
 
-    await callback.message.answer(text, reply_markup=main_keyboard())
+    if callback.message.chat.type == "private":
+        await callback.message.answer(text, reply_markup=main_keyboard())
+    else:
+        await callback.message.answer(text)

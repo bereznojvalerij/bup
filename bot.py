@@ -3,7 +3,7 @@ from aiogram import Bot, Dispatcher
 from config import BOT_TOKEN
 from database import init_db
 
-from handlers import start, fart, stats
+from handlers import start, fart, stats, users
 from scheduler import setup_scheduler
 
 bot = Bot(token=BOT_TOKEN)
@@ -16,6 +16,7 @@ async def main():
     dp.include_router(start.router)
     dp.include_router(fart.router)
     dp.include_router(stats.router)
+    dp.include_router(users.router)
 
     setup_scheduler(bot)
 

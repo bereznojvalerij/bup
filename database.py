@@ -10,7 +10,8 @@ async def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             telegram_id INTEGER UNIQUE,
-            username TEXT
+            username TEXT,
+            chat_id INTEGER
         )
         """)
 
@@ -18,6 +19,7 @@ async def init_db():
         CREATE TABLE IF NOT EXISTS events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER,
+            chat_id INTEGER,
             count INTEGER,
             timestamp TEXT
         )
@@ -26,12 +28,12 @@ async def init_db():
         await db.commit()
 
 
-async def add_user(telegram_id, username):
+async def add_user(telegram_id, username, chat_id):
     async with aiosqlite.connect(DB_NAME) as db:
         await db.execute("""
-        INSERT OR IGNORE INTO users (telegram_id, username)
-        VALUES (?, ?)
-        """, (telegram_id, username))
+        INSERT OR IGNORE INTO users (telegram_id, username, chat_id)
+        VALUES (?, ?, ?)
+        """, (telegram_id, username, chat_id))
         await db.commit()
 
 
@@ -44,12 +46,12 @@ async def get_user_id(telegram_id):
             return row[0] if row else None
 
 
-async def add_event(user_id, count):
+async def add_event(user_id, count, chat_id):
     async with aiosqlite.connect(DB_NAME) as db:
         await db.execute("""
-        INSERT INTO events (user_id, count, timestamp)
-        VALUES (?, ?, ?)
-        """, (user_id, count, datetime.utcnow().isoformat()))
+        INSERT INTO events (user_id, chat_id, count, timestamp)
+        VALUES (?, ?, ?, ?)
+        """, (user_id, chat_id, count, datetime.utcnow().isoformat()))
         await db.commit()
 
 
