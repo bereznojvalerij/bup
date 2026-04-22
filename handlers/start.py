@@ -11,6 +11,6 @@ async def start_handler(message: Message):
     await add_user(message.from_user.id, message.from_user.first_name)
 
     await message.answer(
-        "Добро пожаловать в систему учета 💨",
+        "Меню:",
         reply_markup=main_keyboard()
     )

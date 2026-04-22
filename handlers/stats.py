@@ -1,33 +1,38 @@
 from aiogram import Router
-from aiogram.types import Message
+from aiogram.types import CallbackQuery
 import aiosqlite
-from datetime import datetime, timedelta
+from keyboards.main import fart_keyboard, main_keyboard
 
 from database import DB_NAME, get_user_id
 
 router = Router()
 
 
-@router.message(lambda msg: msg.text == "📊 День")
-async def stats_day(message: Message):
-    user_id = await get_user_id(message.from_user.id)
-
-    today = datetime.utcnow().date()
+# 📊 День
+@router.callback_query(lambda c: c.data == "day")
+async def stats_day(callback: CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=None)
+    user_id = await get_user_id(callback.from_user.id)
 
     async with aiosqlite.connect(DB_NAME) as db:
         async with db.execute("""
         SELECT SUM(count) FROM events
-        WHERE user_id=? AND date(timestamp)=?
-        """, (user_id, today)) as cursor:
+        WHERE user_id=? AND date(timestamp)=date('now')
+        """, (user_id,)) as cursor:
 
-            result = await cursor.fetchone()
-            total = result[0] or 0
+            total = (await cursor.fetchone())[0] or 0
 
-    await message.answer(f"Сегодня: {total} 💨")
+    await callback.message.answer(
+    f"Сегодня: {total} 💨",
+    reply_markup=main_keyboard()
+)
 
-@router.message(lambda msg: msg.text == "📊 Неделя")
-async def stats_week(message: Message):
-    user_id = await get_user_id(message.from_user.id)
+
+# 📊 Неделя
+@router.callback_query(lambda c: c.data == "week")
+async def stats_week(callback: CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=None)
+    user_id = await get_user_id(callback.from_user.id)
 
     async with aiosqlite.connect(DB_NAME) as db:
         async with db.execute("""
@@ -38,11 +43,17 @@ async def stats_week(message: Message):
 
             total = (await cursor.fetchone())[0] or 0
 
-    await message.answer(f"За 7 дней: {total} 💨")
+    await callback.message.answer(
+    f"За 7 дней: {total} 💨",
+    reply_markup=main_keyboard()
+)
 
-@router.message(lambda msg: msg.text == "📊 Месяц")
-async def stats_month(message: Message):
-    user_id = await get_user_id(message.from_user.id)
+
+# 📊 Месяц
+@router.callback_query(lambda c: c.data == "month")
+async def stats_month(callback: CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=None)
+    user_id = await get_user_id(callback.from_user.id)
 
     async with aiosqlite.connect(DB_NAME) as db:
         async with db.execute("""
@@ -53,11 +64,17 @@ async def stats_month(message: Message):
 
             total = (await cursor.fetchone())[0] or 0
 
-    await message.answer(f"За 30 дней: {total} 💨")
+    await callback.message.answer(
+    f"За 30 дней: {total} 💨",
+    reply_markup=main_keyboard()
+)
 
-@router.message(lambda msg: msg.text == "📊 Всё время")
-async def stats_all(message: Message):
-    user_id = await get_user_id(message.from_user.id)
+
+# 📊 Всё время
+@router.callback_query(lambda c: c.data == "all")
+async def stats_all(callback: CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=None)
+    user_id = await get_user_id(callback.from_user.id)
 
     async with aiosqlite.connect(DB_NAME) as db:
         async with db.execute("""
@@ -67,10 +84,16 @@ async def stats_all(message: Message):
 
             total = (await cursor.fetchone())[0] or 0
 
-    await message.answer(f"За всё время: {total} 💨")
+    await callback.message.answer(
+    f"За все время: {total} 💨",
+    reply_markup=main_keyboard()
+)
 
-@router.message(lambda msg: msg.text == "🏆 Общий рейтинг")
-async def rating(message: Message):
+
+# 🏆 Рейтинг
+@router.callback_query(lambda c: c.data == "rating")
+async def rating(callback: CallbackQuery):
+    await callback.message.edit_reply_markup(reply_markup=None)
     async with aiosqlite.connect(DB_NAME) as db:
         async with db.execute("""
         SELECT users.username, SUM(events.count) as total
@@ -83,12 +106,11 @@ async def rating(message: Message):
             rows = await cursor.fetchall()
 
     if not rows:
-        await message.answer("Пока нет данных")
+        await callback.answer("Пока нет данных", show_alert=True)
         return
 
-    text = "🏆 Общий рейтинг:\n\n"
-
+    text = "🏆 Рейтинг:\n\n"
     for i, (name, count) in enumerate(rows, 1):
         text += f"{i}. {name} — {count} 💨\n"
 
-    await message.answer(text)
+    await callback.message.answer(text, reply_markup=main_keyboard())
